@@ -35,15 +35,16 @@ async function resolveLocationId(
 ): Promise<number | string> {
   const { data, error } = await supabase
     .from("locations")
-    .select("id, location_id")
+    .select("id")
     .eq("location_code", locationCode)
     .maybeSingle()
 
   if (error) {
-    throw new Error(`Failed to load location '${locationCode}': ${error.message}`)
+    console.error("Supabase query error:", error)
+    throw new Error(`Supabase query failed for locations: ${error.message}`)
   }
 
-  const locationId = data?.id ?? data?.location_id
+  const locationId = data?.id
 
   if (!locationId) {
     throw new Error(`Location '${locationCode}' not found`)
