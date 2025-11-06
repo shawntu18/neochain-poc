@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
+
+import { useAutoFocus } from "../../hooks/useAutoFocus"
 
 import {
   handleAssembly,
@@ -36,6 +38,31 @@ const modes: Mode[] = ["Receiving", "QC", "Putaway", "Picking", "Assembly", "Ret
 export default function PDAPage() {
   const [mode, setMode] = useState<Mode>("Receiving")
 
+  const receivingInputRef = useAutoFocus<HTMLInputElement>(mode)
+  const qcInputRef = useAutoFocus<HTMLInputElement>(mode)
+  const putawayInputRef = useAutoFocus<HTMLInputElement>(mode)
+  const pickingInputRef = useAutoFocus<HTMLInputElement>(mode)
+  const assemblyInputRef = useAutoFocus<HTMLInputElement>(mode)
+  const returnInputRef = useAutoFocus<HTMLInputElement>(mode)
+
+  const modeFirstInputRefs = useRef<Record<Mode, typeof receivingInputRef>>({
+    Receiving: receivingInputRef,
+    QC: qcInputRef,
+    Putaway: putawayInputRef,
+    Picking: pickingInputRef,
+    Assembly: assemblyInputRef,
+    Return: returnInputRef,
+  })
+
+  modeFirstInputRefs.current = {
+    Receiving: receivingInputRef,
+    QC: qcInputRef,
+    Putaway: putawayInputRef,
+    Picking: pickingInputRef,
+    Assembly: assemblyInputRef,
+    Return: returnInputRef,
+  }
+
   const inputLabelClass = "text-sm font-medium text-slate-700"
   const helpTextClass = "text-xs text-slate-500"
   const inputClass =
@@ -67,6 +94,7 @@ export default function PDAPage() {
                 required
                 className={inputClass}
                 placeholder="如：C-1001"
+                ref={modeFirstInputRefs.current.Receiving}
               />
             </label>
             <label className="grid gap-1">
@@ -92,7 +120,13 @@ export default function PDAPage() {
           <form action={qcAction} className="grid gap-5">
             <label className="grid gap-1">
               <span className={inputLabelClass}>容器编码</span>
-              <input name="containerCode" required className={inputClass} placeholder="待检容器编码" />
+              <input
+                name="containerCode"
+                required
+                className={inputClass}
+                placeholder="待检容器编码"
+                ref={modeFirstInputRefs.current.QC}
+              />
             </label>
             <div className="flex flex-col gap-3 sm:flex-row">
               <button
@@ -119,7 +153,13 @@ export default function PDAPage() {
           <form action={putawayAction} className="grid gap-5">
             <label className="grid gap-1">
               <span className={inputLabelClass}>容器编码</span>
-              <input name="containerCode" required className={inputClass} placeholder="待上架容器" />
+              <input
+                name="containerCode"
+                required
+                className={inputClass}
+                placeholder="待上架容器"
+                ref={modeFirstInputRefs.current.Putaway}
+              />
             </label>
             <label className="grid gap-1">
               <div className="flex items-center justify-between">
@@ -140,7 +180,13 @@ export default function PDAPage() {
           <form action={pickingAction} className="grid gap-5">
             <label className="grid gap-1">
               <span className={inputLabelClass}>容器编码</span>
-              <input name="containerCode" required className={inputClass} placeholder="需要拣货的容器" />
+              <input
+                name="containerCode"
+                required
+                className={inputClass}
+                placeholder="需要拣货的容器"
+                ref={modeFirstInputRefs.current.Picking}
+              />
             </label>
             <div className="flex justify-end">
               <button type="submit" className={`${primaryButtonClass} min-w-32`}>
@@ -154,7 +200,13 @@ export default function PDAPage() {
           <form action={assemblyAction} className="grid gap-5">
             <label className="grid gap-1">
               <span className={inputLabelClass}>原料容器</span>
-              <input name="materialContainer" required className={inputClass} placeholder="原料容器编码" />
+              <input
+                name="materialContainer"
+                required
+                className={inputClass}
+                placeholder="原料容器编码"
+                ref={modeFirstInputRefs.current.Assembly}
+              />
             </label>
             <label className="grid gap-1">
               <span className={inputLabelClass}>成品容器</span>
@@ -180,7 +232,13 @@ export default function PDAPage() {
           <form action={returnAction} className="grid gap-5">
             <label className="grid gap-1">
               <span className={inputLabelClass}>容器编码</span>
-              <input name="containerCode" required className={inputClass} placeholder="退库容器编码" />
+              <input
+                name="containerCode"
+                required
+                className={inputClass}
+                placeholder="退库容器编码"
+                ref={modeFirstInputRefs.current.Return}
+              />
             </label>
             <div className="flex justify-end">
               <button type="submit" className={`${primaryButtonClass} min-w-32`}>
