@@ -1,5 +1,8 @@
 export const revalidate = 0
 
+import Link from "next/link"
+
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { createClient } from "@/utils/supabase/server"
 
 type RawContainer = {
@@ -19,6 +22,19 @@ type Container = {
   items?: { name: string | null } | null
   locations?: { location_code: string | null } | null
 }
+
+const menuItems = [
+  {
+    label: "PDA 作业台",
+    href: "/dashboard/pda",
+    description: "执行入库、质检、拣货等 PDA 流程",
+  },
+  {
+    label: "实时看板",
+    href: "/dashboard/status",
+    description: "掌握容器流转状态与库位分布",
+  },
+]
 
 async function loadContainers(): Promise<Container[]> {
   const supabase = await createClient()
@@ -118,9 +134,48 @@ export default async function StatusPage() {
     { label: "运输中", value: statusSummary.In_Transit ?? 0 },
   ]
 
+  const currentYear = new Date().getFullYear()
+  const currentPath = "/dashboard/status"
+
   return (
     <main className="min-h-full bg-slate-50 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
       <div className="mx-auto flex max-w-6xl flex-col gap-6">
+        <nav className="rounded-2xl border border-slate-200 bg-white/95 shadow-sm backdrop-blur-sm">
+          <div className="flex flex-col gap-2 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-slate-900">NeoChain 控制台</p>
+              <p className="text-xs text-slate-500">快速跳转至核心功能模块</p>
+            </div>
+            <span className="text-xs font-medium uppercase tracking-wide text-indigo-600">
+              NeoChain Co., Limited
+            </span>
+          </div>
+          <div className="grid gap-3 px-6 py-4 sm:grid-cols-2 lg:grid-cols-3">
+            {menuItems.map((item) => {
+              const isActive = item.href === currentPath
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`group flex flex-col gap-1 rounded-xl border px-4 py-3 transition ${
+                    isActive
+                      ? "border-indigo-400 bg-indigo-50/80 shadow-sm"
+                      : "border-slate-200 bg-white hover:border-indigo-200 hover:bg-indigo-50/60 hover:shadow-sm"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm font-semibold text-slate-900">{item.label}</span>
+                    <span className="text-xs font-medium text-indigo-500 transition group-hover:translate-x-1 group-hover:text-indigo-600">
+                      →
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500">{item.description}</p>
+                </Link>
+              )
+            })}
+          </div>
+        </nav>
         <section className="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-sm backdrop-blur-sm">
           <header className="space-y-2">
             <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-600">
@@ -146,68 +201,59 @@ export default async function StatusPage() {
         </section>
         <section className="rounded-2xl border border-slate-200 bg-white/90 shadow-sm backdrop-blur-sm">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-slate-100/70">
-                <tr>
-                  <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
-                    容器编码
-                  </th>
-                  <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
-                    SKU
-                  </th>
-                  <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
-                    数量
-                  </th>
-                  <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
-                    状态
-                  </th>
-                  <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
-                    物料名称
-                  </th>
-                  <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
-                    库位编码
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
+            <Table className="min-w-full">
+              <TableHeader className="bg-slate-100/70">
+                <TableRow>
+                  <TableHead className="whitespace-nowrap px-4">Container</TableHead>
+                  <TableHead className="whitespace-nowrap px-4">SKU</TableHead>
+                  <TableHead className="whitespace-nowrap px-4">Name</TableHead>
+                  <TableHead className="whitespace-nowrap px-4">Qty</TableHead>
+                  <TableHead className="whitespace-nowrap px-4">Status</TableHead>
+                  <TableHead className="whitespace-nowrap px-4">Location</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-slate-100 bg-white">
                 {containers.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-12 text-center text-sm text-slate-500">
+                  <TableRow>
+                    <TableCell colSpan={6} className="px-4 py-12 text-center text-sm text-slate-500">
                       暂无数据
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ) : (
                   containers.map((container) => {
                     const { label, className } = formatStatus(container.status)
 
                     return (
-                      <tr key={container.container_code} className="hover:bg-slate-50/70">
-                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-slate-900">
+                      <TableRow key={container.container_code} className="hover:bg-slate-50/70">
+                        <TableCell className="whitespace-nowrap px-4 py-3 text-sm font-medium text-slate-900">
                           {container.container_code}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-600">
-                          {container.sku ?? "-"}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-600">
-                          {container.quantity ?? "-"}
-                        </td>
-                        <td className="px-4 py-3">
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap px-4 py-3 text-sm text-slate-600">
+                          {container.sku ?? "N/A"}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap px-4 py-3 text-sm text-slate-600">
+                          {container.items?.name ?? "N/A"}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap px-4 py-3 text-sm text-slate-600">
+                          {container.quantity ?? "N/A"}
+                        </TableCell>
+                        <TableCell className="px-4 py-3">
                           <span className={className}>{label}</span>
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-600">
-                          {container.items?.name ?? "-"}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-600">
-                          {container.locations?.location_code ?? "-"}
-                        </td>
-                      </tr>
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap px-4 py-3 text-sm text-slate-600">
+                          {container.locations?.location_code ?? "N/A"}
+                        </TableCell>
+                      </TableRow>
                     )
                   })
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </section>
+        <footer className="rounded-2xl border border-dashed border-slate-200 bg-white/70 px-6 py-4 text-center text-xs text-slate-500">
+          © {currentYear} NeoChain Co., Limited. 保留所有权利。
+        </footer>
       </div>
     </main>
   )
